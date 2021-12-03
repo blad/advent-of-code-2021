@@ -6,7 +6,7 @@
 (defn convert-line
   "Converts the line into a direction and value"
   [line] 
-  (map #(Integer/parseInt %) (str/split line #"")))
+  (vec (map #(Integer/parseInt %) (str/split line #""))))
 
 (defn convert-input 
   "Convert the file contents to a workable format for solving the problem"
@@ -37,6 +37,44 @@
         epsilon         (invert gamma)]
     (* (to-decimal gamma) (to-decimal epsilon))))
 
+(defn compute-output-value-part-2 [x] 
+  (let [x-binary        (map #(if (> 0 %) 1 0) x)
+        gamma           (reverse x-binary)
+        epsilon         (invert gamma)]
+    (* (to-decimal gamma) (to-decimal epsilon))))
+
+(defn partition-at 
+  "Returns a partiion by zero and ones" 
+  [n xs] 
+  (let [groups (group-by #(get % n) xs)]
+    [(get groups 1) (get groups 0)]))
+
+(defn partition-oxygen-gen [input]
+  (loop [xs input
+         n  5]
+    (if 
+      (= 1 (count xs))
+      (first xs)
+      (let [[os zs] (partition-at (- 5 n) xs)
+            os-len  (count os)
+            zs-len  (count zs)]
+        (recur 
+          (if (>= os-len zs-len) os zs)
+          (dec n))))))
+
+(defn partition-carbon-scrub [input]
+  (loop [xs input
+         n  5]
+    (if 
+      (= 1 (count xs))
+      (first xs)
+      (let [[os zs] (partition-at (- 5 n) xs)
+            os-len  (count os)
+            zs-len  (count zs)]
+        (recur 
+          (if (< os-len zs-len) os zs)
+          (dec n))))))
+
 ;; Solver Functions
 (defn solve-part-1
   "Solve Part 1 of Day 3" 
@@ -44,8 +82,15 @@
   (compute-output-value
     (reduce tally-digits (repeat 0) values)))
 
+(defn solve-part-2
+  "Solve Part 2 of Day 3" 
+  [values]
+  (let [oxygen (partition-oxygen-gen values)
+        carbon (partition-carbon-scrub values)]
+    (* (to-decimal (reverse oxygen)) (to-decimal (reverse carbon)))))
+
 (defn -main []
   (let [input-file    "resources/input.txt"
         file-contents (slurp input-file)
         inputs        (convert-input file-contents)]
-    (println (solve-part-1 inputs))))
+    (println (solve-part-2 inputs))))
