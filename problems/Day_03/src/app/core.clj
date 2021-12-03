@@ -37,12 +37,6 @@
         epsilon         (invert gamma)]
     (* (to-decimal gamma) (to-decimal epsilon))))
 
-(defn compute-output-value-part-2 [x] 
-  (let [x-binary        (map #(if (> 0 %) 1 0) x)
-        gamma           (reverse x-binary)
-        epsilon         (invert gamma)]
-    (* (to-decimal gamma) (to-decimal epsilon))))
-
 (defn partition-at 
   "Returns a partiion by zero and ones" 
   [n xs] 
