@@ -37,6 +37,16 @@
       [{:numbers candidate :boards winning-boards}]
       [])))
 
+(defn keep-losers
+  [{candidate :candidate boards :boards}]
+  (let [losing-boards (->> 
+                         boards
+                         (filter #(not (board-winner? candidate %)))
+                         (vec))]
+    (if (not-empty losing-boards)
+      [{:numbers candidate :boards losing-boards}]
+      [])))
+
 (defn solution-board-combo 
   [boards candidates]
   (map #(hash-map :candidate % :boards boards) candidates))
@@ -49,7 +59,24 @@
     (solution-board-combo boards)
     (mapcat keep-winners)
     (first)))
-        
+
+ (defn find-last-winner
+  [{numbers :numbers
+    boards  :boards}]
+  (->>
+    (bingo-combinations numbers)
+    (reverse) ;; Explore
+    (solution-board-combo boards)
+    (mapcat keep-losers)
+    (first)))       
+
+(defn second-combination
+  [original-numbers
+   {numbers :numbers
+    boards  :boards}]
+  {:numbers (take (inc (count numbers)) original-numbers)
+   :boards boards})
+
 (defn format-output [{numbers :numbers winning-board :boards}]
   (let [winning-number   (to-decimal (last numbers))
         board-numbers    (vec (flatten winning-board))
@@ -65,9 +92,17 @@
     input
     (find-first-winner)
     (format-output)))
+
+(defn solve-part-2
+  [input]
+  (->>
+    input
+    (find-last-winner)
+    (second-combination (:numbers input))
+    (format-output)))
         
 (defn -main []
-  (let [input-file    "resources/sample_input.txt"
+  (let [input-file    "resources/input.txt"
         file-contents (slurp input-file)
         input        (convert-input file-contents)]
-    (println (solve-part-1 input))))
+    (println (solve-part-2 input))))
