@@ -10,7 +10,28 @@
         next-value (inc current)]
     (assoc acc point-key next-value)))
 
-(defn points-for-line [[x1 y1 x2 y2]]
+(defn slope [x1 y1 x2 y2]
+  (let [y-diff (- y2 y1)
+        x-diff (- x2 x1)]
+    (/ y-diff x-diff)))
+
+(defn intercept [m x y]
+  (- y (* m x)))
+
+(defn eval-x [m b x]
+  (+ b (* m x)))
+
+(defn points-for-diagonal [[x1 y1 x2 y2]]
+  (vec
+    (if 
+      (and (not= x1 x2) (not= y1 y2))
+      (let [m  (slope x1 y1 x2 y2)
+            b  (intercept m x1 y1)
+            xs (range (min x1 x2) (inc (max x1 x2)))]
+        (for [x xs] [x (eval-x m b x)]))
+      [])))
+
+(defn points-for-horizontal-vertical-line [[x1 y1 x2 y2]]
   (vec 
     (if 
       (or (= x1 x2) (= y1 y2))
@@ -29,17 +50,31 @@
     (filter #(<= 2 %))
     (count)))
 
+(defn all-points [xs]
+  (vec
+    (concat 
+      (mapcat points-for-horizontal-vertical-line xs)
+      (mapcat points-for-diagonal xs))))
+
 ;; Solver Entry Points
 (defn solve-part-1 
   [input]
   (->>
     input
-    (mapcat points-for-line)
+    (mapcat points-for-horizontal-vertical-line)
+    (reduce tally {})
+    (format-output)))
+
+(defn solve-part-2 
+  [input]
+  (->>
+    input
+    (all-points)
     (reduce tally {})
     (format-output)))
 
 (defn -main []
   (let [input-file    "resources/input.txt"
         file-contents (slurp input-file)
-        input        (convert-input file-contents)]
-    (println (solve-part-1 input))))
+        input         (convert-input file-contents)]
+    (println (solve-part-2 input))))
